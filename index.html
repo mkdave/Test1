@@ -2,23 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Hello World</title>
+  <title>Hello World with Live Prices</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+    }
+    h1 {
+      color: #333;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin-bottom: 0.5em;
+      font-size: 1.2em;
+    }
+  </style>
 </head>
 <body>
   <h1>Hello, World!!!!!!</h1>
 
-  <button id="clickBtn">Click me!</button>
-  <p>You have clicked the button <span id="count">0</span> times.</p>
+  <div>
+    <h2>Current Prices</h2>
+    <ul id="prices">
+      <li>MSFT: <span id="msft">Loading...</span></li>
+      <li>AMZN: <span id="amzn">Loading...</span></li>
+      <li>Gold (USD/oz): <span id="gold">Loading...</span></li>
+      <li>Silver (USD/oz): <span id="silver">Loading...</span></li>
+      <li>Bitcoin (USD): <span id="bitcoin">Loading...</span></li>
+    </ul>
+  </div>
 
   <script>
-    const button = document.getElementById('clickBtn');
-    const countSpan = document.getElementById('count');
-    let count = 0;
+    const API_KEY = 'YOUR_ALPHA_VANTAGE_API_KEY'; // Replace with your API key
 
-    button.addEventListener('click', () => {
-      count++;
-      countSpan.textContent = count;
-    });
-  </script>
-</body>
-</html>
+    async function fetchStockPrice(symbol, elementId) {
+      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const price = data['Global Quote']?.['05. price]()
