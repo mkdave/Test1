@@ -43,4 +43,34 @@
       try {
         const res = await fetch(url);
         const data = await res.json();
-        const price = data['Global Quote']?.['05. price]()
+        const price = data['Global Quote']?.['05. price'];
+        document.getElementById(elementId).textContent = price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
+      } catch {
+        document.getElementById(elementId).textContent = 'Error';
+      }
+    }
+
+    async function fetchCoinGeckoPrice(id, elementId) {
+      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const price = data[id]?.usd;
+        document.getElementById(elementId).textContent = price ? `$${price.toLocaleString()}` : 'N/A';
+      } catch {
+        document.getElementById(elementId).textContent = 'Error';
+      }
+    }
+
+    async function updatePrices() {
+      await Promise.all([
+        fetchStockPrice('MSFT', 'msft'),
+        fetchStockPrice('AMZN', 'amzn'),
+      ]);
+    }
+
+    updatePrices();
+    setInterval(updatePrices, 5000); 
+  </script>
+</body>
+</html>
