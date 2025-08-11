@@ -35,17 +35,19 @@
   <script>
     const API_KEY = 'YOUR_ALPHA_VANTAGE_API_KEY'; // Replace with your API key
 
-    async function fetchStockPrice(symbol, elementId) {
-      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        const price = data['Global Quote']?.['05. price'];
-        document.getElementById(elementId).textContent = price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
-      } catch {
-        document.getElementById(elementId).textContent = 'Error';
-      }
-    }
+	async function fetchStockPrice(symbol, elementId) {
+	  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
+	  try {
+		const res = await fetch(url);
+		const data = await res.json();
+		console.log(`Alpha Vantage response for ${symbol}:`, data);
+		const price = data['Global Quote']?.['05. price'];
+		document.getElementById(elementId).textContent = price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
+	  } catch (error) {
+		console.error('Error fetching price for', symbol, error);
+		document.getElementById(elementId).textContent = 'Error';
+	  }
+	}
 
     async function fetchCoinGeckoPrice(id, elementId) {
       const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`;
