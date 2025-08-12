@@ -2,70 +2,183 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Simple Pac-Man Game</title>
+<title>Advanced Pac-Man</title>
 <style>
   body {
     background: black;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     color: white;
-    font-family: monospace;
-    text-align: center;
+    font-family: Arial, sans-serif;
   }
   canvas {
     background: #000;
-    display: block;
-    margin: 20px auto;
-    border: 2px solid #222;
+    margin-top: 20px;
+    border: 4px solid #222;
   }
   #score {
+    margin-top: 15px;
     font-size: 20px;
-    margin-top: 10px;
   }
 </style>
 </head>
 <body>
-  <h1>Simple Pac-Man Game</h1>
-  <canvas id="game" width="400" height="400"></canvas>
+  <h1>Advanced Pac-Man</h1>
+  <canvas id="game" width="560" height="620"></canvas>
   <div id="score">Score: 0</div>
-
   <script>
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-
     const tileSize = 20;
-    const rows = canvas.height / tileSize;
-    const cols = canvas.width / tileSize;
+    const rows = 31; // Pac-Man classic map height
+    const cols = 28; // Pac-Man classic map width
 
-    // Simple map layout: 0=empty, 1=wall, 2=dot
-    const map = [
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,2,2,2,1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,1],
-      [1,2,1,2,1,2,1,1,1,1,1,1,1,2,1,2,1,2,2,1],
-      [1,2,1,2,2,2,2,2,2,1,0,0,1,2,2,2,1,2,2,1],
-      [1,2,1,1,1,1,1,1,2,1,0,0,1,1,1,1,1,2,2,1],
-      [1,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,1],
-      [1,2,1,1,1,1,2,1,1,1,0,0,1,1,1,1,1,1,2,1],
-      [1,2,2,2,2,1,2,2,2,1,0,0,1,2,2,2,2,2,2,1],
-      [1,1,1,1,2,1,1,1,2,1,1,1,1,2,1,1,1,1,1,1],
-      [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,1],
-      [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,2,1,1,2,1],
-      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    // Map layout (0=empty,1=wall,2=dot,3=power pellet)
+    // This is a simplified map for demonstration
+    const layout = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,3,2,2,2,2,2,2,2,2,2,1,1,2,2,1,1,2,2,2,2,2,2,2,2,2,3,1],
+      [1,2,1,1,1,1,2,1,1,1,2,1,1,2,2,1,1,2,1,1,1,2,1,1,1,1,2,1],
+      [1,2,1,1,1,1,2,1,1,1,2,1,1,2,2,1,1,2,1,1,1,2,1,1,1,1,2,1],
+      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+      [1,2,1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1,1,1,2,1],
+      [1,2,2,2,1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1,2,2,2,1],
+      [1,1,1,2,1,1,1,1,2,1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1],
+      [0,0,1,2,2,2,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,2,1,2,2,0,0],
+      [1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+      [1,2,2,2,1,1,2,2,2,2,2,1,1,1,1,1,1,2,2,2,2,2,1,1,2,2,2,1],
+      [1,2,1,1,1,1,1,1,1,1,2,1,1,2,2,1,1,2,1,1,1,1,1,1,1,1,2,1],
+      [1,2,2,2,2,2,2,2,2,2,2,1,1,2,2,1,1,2,2,2,2,2,2,2,2,2,2,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-    let pacman = {
-      x: 1,
-      y: 1,
-      dirX: 0,
-      dirY: 0,
-      radius: tileSize/2 - 2
+    // Resize rows and cols according to layout
+    const mapRows = layout.length;
+    const mapCols = layout[0].length;
+
+    // Directions
+    const DIR = {
+      NONE: {x:0,y:0},
+      LEFT: {x:-1,y:0},
+      UP: {x:0,y:-1},
+      RIGHT: {x:1,y:0},
+      DOWN: {x:0,y:1}
     };
+
+    class Entity {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.dir = DIR.NONE;
+        this.nextDir = DIR.NONE;
+        this.speed = 0.1;
+        this.posX = x;
+        this.posY = y;
+      }
+
+      canMove(dir) {
+        let newX = Math.round(this.posX + dir.x);
+        let newY = Math.round(this.posY + dir.y);
+        if(newX < 0 || newX >= mapCols || newY < 0 || newY >= mapRows) return false;
+        return layout[newY][newX] !== 1;
+      }
+
+      update() {
+        // Change direction if possible
+        if(this.nextDir !== DIR.NONE && this.canMove(this.nextDir)) {
+          this.dir = this.nextDir;
+          this.nextDir = DIR.NONE;
+        }
+        if(this.canMove(this.dir)) {
+          this.posX += this.dir.x * this.speed;
+          this.posY += this.dir.y * this.speed;
+        } else {
+          this.dir = DIR.NONE;
+        }
+        this.x = Math.round(this.posX);
+        this.y = Math.round(this.posY);
+      }
+
+      draw(ctx) {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.posX * tileSize + tileSize/2, this.posY * tileSize + tileSize/2, tileSize/2-2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Pacman class extending Entity with mouth animation
+    class Pacman extends Entity {
+      constructor(x,y) {
+        super(x,y,'yellow');
+        this.mouthOpen = 0.25;
+        this.mouthDir = 1;
+      }
+
+      draw(ctx) {
+        let centerX = this.posX * tileSize + tileSize/2;
+        let centerY = this.posY * tileSize + tileSize/2;
+        let radius = tileSize/2 - 2;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        let startAngle = this.mouthOpen * Math.PI * this.mouthDir;
+        let endAngle = (2 - this.mouthOpen * this.mouthDir) * Math.PI;
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
+        ctx.closePath();
+        ctx.fill();
+
+        this.mouthOpen += 0.05 * this.mouthDir;
+        if(this.mouthOpen > 0.35 || this.mouthOpen < 0.15) this.mouthDir *= -1;
+      }
+    }
+
+    // Ghost class with simple AI to chase Pacman or move randomly
+    class Ghost extends Entity {
+      constructor(x,y,color) {
+        super(x,y,color);
+        this.changeDirCounter = 0;
+      }
+
+      update(pacman) {
+        this.changeDirCounter--;
+        if(this.changeDirCounter <= 0) {
+          this.changeDirCounter = 30;
+          // Try to move towards Pacman
+          let possibleDirs = [DIR.UP, DIR.DOWN, DIR.LEFT, DIR.RIGHT].filter(d => this.canMove(d));
+          if(possibleDirs.length > 0) {
+            // Choose direction that gets closer to Pacman (simple heuristic)
+            possibleDirs.sort((a,b) => {
+              let distA = Math.hypot((this.x + a.x) - pacman.x, (this.y + a.y) - pacman.y);
+              let distB = Math.hypot((this.x + b.x) - pacman.x, (this.y + b.y) - pacman.y);
+              return distA - distB;
+            });
+            this.dir = possibleDirs[0];
+          } else {
+            this.dir = DIR.NONE;
+          }
+        }
+        super.update();
+      }
+    }
+
+    let pacman = new Pacman(13, 23);
+    let ghosts = [
+      new Ghost(13, 11, 'red'),
+      new Ghost(14, 11, 'pink'),
+      new Ghost(12, 11, 'cyan'),
+      new Ghost(15, 11, 'orange'),
+    ];
 
     let score = 0;
 
     function drawMap() {
-      for(let r=0; r < map.length; r++) {
-        for(let c=0; c < map[r].length; c++) {
-          const tile = map[r][c];
+      for(let r=0; r < mapRows; r++) {
+        for(let c=0; c < mapCols; c++) {
+          let tile = layout[r][c];
           if(tile === 1) {
             ctx.fillStyle = 'blue';
             ctx.fillRect(c*tileSize, r*tileSize, tileSize, tileSize);
@@ -74,10 +187,14 @@
             ctx.fillRect(c*tileSize, r*tileSize, tileSize, tileSize);
             if(tile === 2) {
               ctx.fillStyle = 'white';
-              const centerX = c*tileSize + tileSize/2;
-              const centerY = r*tileSize + tileSize/2;
               ctx.beginPath();
-              ctx.arc(centerX, centerY, 4, 0, 2*Math.PI);
+              ctx.arc(c*tileSize + tileSize/2, r*tileSize + tileSize/2, 3, 0, 2*Math.PI);
+              ctx.fill();
+            }
+            if(tile === 3) {
+              ctx.fillStyle = 'white';
+              ctx.beginPath();
+              ctx.arc(c*tileSize + tileSize/2, r*tileSize + tileSize/2, 7, 0, 2*Math.PI);
               ctx.fill();
             }
           }
@@ -85,64 +202,94 @@
       }
     }
 
-    function drawPacman() {
-      const centerX = pacman.x * tileSize + tileSize/2;
-      const centerY = pacman.y * tileSize + tileSize/2;
+    function checkCollisions() {
+      // Pacman eats dots or power pellets
+      if(layout[pacman.y][pacman.x] === 2) {
+        layout[pacman.y][pacman.x] = 0;
+        score++;
+        updateScore();
+      } else if(layout[pacman.y][pacman.x] === 3) {
+        layout[pacman.y][pacman.x] = 0;
+        score += 5; // power pellet bonus
+        updateScore();
+      }
 
-      ctx.fillStyle = 'yellow';
-      ctx.beginPath();
-      // Pacman mouth animation
-      let mouthOpen = 0.25 * Math.PI;
-      ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, pacman.radius, mouthOpen, 2*Math.PI - mouthOpen);
-      ctx.closePath();
-      ctx.fill();
+      // Check collision with ghosts
+      for(let ghost of ghosts) {
+        let dist = Math.hypot(pacman.posX - ghost.posX, pacman.posY - ghost.posY);
+        if(dist < 0.6) {
+          alert('Game Over! Your score: ' + score);
+          resetGame();
+          break;
+        }
+      }
     }
 
-    function movePacman() {
-      const newX = pacman.x + pacman.dirX;
-      const newY = pacman.y + pacman.dirY;
+    function updateScore() {
+      document.getElementById('score').textContent = 'Score: ' + score;
+    }
 
-      if(newY >= 0 && newY < map.length && newX >= 0 && newX < map[0].length) {
-        if(map[newY][newX] !== 1) { // not a wall
-          pacman.x = newX;
-          pacman.y = newY;
+    function resetGame() {
+      // Reset positions and score
+      pacman.posX = 13;
+      pacman.posY = 23;
+      pacman.x = 13;
+      pacman.y = 23;
+      pacman.dir = DIR.NONE;
+      pacman.nextDir = DIR.NONE;
 
-          // Eat dot
-          if(map[newY][newX] === 2) {
-            map[newY][newX] = 0;
-            score++;
-            document.getElementById('score').textContent = 'Score: ' + score;
+      ghosts[0].posX = 13; ghosts[0].posY = 11; ghosts[0].x = 13; ghosts[0].y = 11;
+      ghosts[1].posX = 14; ghosts[1].posY = 11; ghosts[1].x = 14; ghosts[1].y = 11;
+      ghosts[2].posX = 12; ghosts[2].posY = 11; ghosts[2].x = 12; ghosts[2].y = 11;
+      ghosts[3].posX = 15; ghosts[3].posY = 11; ghosts[3].x = 15; ghosts[3].y = 11;
+
+      score = 0;
+      updateScore();
+
+      // Reset dots and pellets
+      for(let r=0; r < mapRows; r++) {
+        for(let c=0; c < mapCols; c++) {
+          if(layout[r][c] === 0 && (r !== 23 || c !== 13)) {
+            layout[r][c] = 2; // refill dots except starting pacman position
           }
         }
       }
+      layout[1][1] = 3; layout[1][26] = 3; // reset power pellets
     }
 
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawMap();
-      drawPacman();
-      movePacman();
+      pacman.update();
+      pacman.draw(ctx);
+
+      for(let ghost of ghosts) {
+        ghost.update(pacman);
+        ghost.draw(ctx);
+      }
+
+      checkCollisions();
       requestAnimationFrame(gameLoop);
     }
 
     document.addEventListener('keydown', e => {
       switch(e.key) {
         case 'ArrowUp':
-          pacman.dirX = 0; pacman.dirY = -1;
+          pacman.nextDir = DIR.UP;
           break;
         case 'ArrowDown':
-          pacman.dirX = 0; pacman.dirY = 1;
+          pacman.nextDir = DIR.DOWN;
           break;
         case 'ArrowLeft':
-          pacman.dirX = -1; pacman.dirY = 0;
+          pacman.nextDir = DIR.LEFT;
           break;
         case 'ArrowRight':
-          pacman.dirX = 1; pacman.dirY = 0;
+          pacman.nextDir = DIR.RIGHT;
           break;
       }
     });
 
+    resetGame();
     gameLoop();
   </script>
 </body>
